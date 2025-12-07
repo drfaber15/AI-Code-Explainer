@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { explainCode } from './services/api'
 import { FileCode, Loader, Copy, Check } from 'lucide-react'
 
 interface ExplanationResult {
@@ -297,7 +298,7 @@ function App() {
   const [result, setResult] = useState<ExplanationResult | null>(null)
   const [loading, setLoading] = useState(false)
 
-  const handleExplain = () => {
+  const handleExplain = async () => {
     if (!code.trim()) {
       return
     }
@@ -305,26 +306,22 @@ function App() {
     setLoading(true)
     setResult(null)
 
-    // Simulate loading
-    setTimeout(() => {
-      const explanation = mockExplanations[code.trim()] || {
-        summary: `This code snippet is written in ${language}. To get AI-powered explanations, add this to a backend API.`,
+    try {
+      const explanation = await explainCode(code, language)
+      setResult(explanation)
+    } catch (err: any) {
+      setResult({
+        summary: err.message || 'Failed to get explanation from backend.',
         line_explanations: code.split('\n').map((line, idx) => ({
           line: idx + 1,
           code: line.trim(),
-          explanation: 'Add a backend API to get detailed explanations'
+          explanation: 'Error: Could not get explanation.'
         })),
-        tests: [
-          {
-            name: 'test_basic',
-            description: 'Add backend for test suggestions',
-            example: 'assert True'
-          }
-        ]
-      }
-      setResult(explanation)
+        tests: []
+      })
+    } finally {
       setLoading(false)
-    }, 500)
+    }
   }
 
   const handleLoadExample = (exampleCode: string, lang: string) => {
