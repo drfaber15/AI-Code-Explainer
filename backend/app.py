@@ -1,5 +1,22 @@
+
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+import os
+import sys
+from pathlib import Path
+
+# Add code-explainer-cli to path
+cli_path = Path("/Users/danesmacbook/Code Explainer/code-explainer-cli/code-explainer-cli/src")
+sys.path.insert(0, str(cli_path))
+try:
+    from prompts import build_prompt
+    from llm_client import call_llm
+    from parser import parse_response
+except ImportError as e:
+    print(f"Error importing CLI modules: {e}")
+    build_prompt = None
+    call_llm = None
+    parse_response = None
 
 app = Flask(__name__)
 CORS(app)
@@ -9,8 +26,15 @@ def explain_code():
     data = request.get_json()
     code = data.get('code', '')
     language = data.get('language', '')
-    # TODO: Integrate your AI code explainer logic here
-    # For now, return a mock response
+    if build_prompt and call_llm and parse_response:
+        try:
+            prompt = build_prompt(code, lang_hint=language)
+            raw_response = call_llm(prompt)
+            parsed = parse_response(raw_response)
+            return jsonify(parsed)
+        except Exception as e:
+            return jsonify({"summary": f"Explainer error: {str(e)}", "line_explanations": [], "tests": []}), 500
+    # Fallback mock response
     return jsonify({
         "summary": f"This code snippet is written in {language}. To get AI-powered explanations, integrate your explainer logic here.",
         "line_explanations": [
