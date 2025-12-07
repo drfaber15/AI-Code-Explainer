@@ -1,4 +1,3 @@
-import { SyntaxHighlighter, docco } from 'react-syntax-highlighter'
 import { Upload } from 'lucide-react'
 import React from 'react'
 
