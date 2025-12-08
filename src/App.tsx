@@ -300,16 +300,20 @@ function App() {
 
   const handleExplain = async () => {
     if (!code.trim()) {
+      console.log('[DEBUG] No code to explain.')
       return
     }
 
     setLoading(true)
     setResult(null)
+    console.log('[DEBUG] Sending explain request:', { code, language })
 
     try {
       const explanation = await explainCode(code, language)
+      console.log('[DEBUG] Received explanation:', explanation)
       setResult(explanation)
     } catch (err: any) {
+      console.error('[DEBUG] Error from explainCode:', err)
       setResult({
         summary: err.message || 'Failed to get explanation from backend.',
         line_explanations: code.split('\n').map((line, idx) => ({
